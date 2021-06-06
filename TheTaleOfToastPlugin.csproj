@@ -10,7 +10,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Libs\MMHOOK_Assembly-CSharp.dll" />
+    <Compile Remove="Libs\**" />
+    <EmbeddedResource Remove="Libs\**" />
+    <None Remove="Libs\**" />
   </ItemGroup>
 
   <ItemGroup>
