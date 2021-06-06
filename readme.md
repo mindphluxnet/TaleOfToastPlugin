@@ -1,10 +1,10 @@
-﻿##Bug Fixes
+﻿## Bug Fixes
 
 * Re-implements broken Discord Presence implementation
 * Adds missing Alt+Click to crafting recipe item preview
 * Fixes broken Back button on Mailbox Compose view
 
-##Quality of Life Features
+## Quality of Life Features
 
 * Adds a free bag space display next to the button menu
 * Adds the ability to use the Enter/Return key to log in and enter the world
