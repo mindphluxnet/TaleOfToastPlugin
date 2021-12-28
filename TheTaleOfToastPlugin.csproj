@@ -4,15 +4,20 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>Richard "mindphlux" Kämmerer</Authors>
     <Copyright>2021, Richard Kämmerer</Copyright>
-    <AssemblyVersion>1.0.4.0</AssemblyVersion>
+    <AssemblyVersion>1.0.8.*</AssemblyVersion>
     <Description>A BepInEx plugin for the game "The Tale of Toast" adding several quality of life improvements and bug fixes.</Description>
-    <Version>1.0.4</Version>
+    <Version>1.0.8.0</Version>
+    <Deterministic>false</Deterministic>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="Libs\**" />
     <EmbeddedResource Remove="Libs\**" />
     <None Remove="Libs\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,6 +30,12 @@
     <Reference Include="BepInEx.Harmony">
       <HintPath>Libs\BepInEx.Harmony.dll</HintPath>
     </Reference>
+    <Reference Include="Facepunch.Steamworks">
+      <HintPath>Libs\Facepunch.Steamworks.dll</HintPath>
+    </Reference>
+    <Reference Include="InControl">
+      <HintPath>Libs\InControl.dll</HintPath>
+    </Reference>
     <Reference Include="MMHOOK_Assembly-CSharp">
       <HintPath>Libs\MMHOOK_Assembly-CSharp.dll</HintPath>
     </Reference>
@@ -34,11 +45,26 @@
     <Reference Include="MonoMod.Utils">
       <HintPath>Libs\MonoMod.Utils.dll</HintPath>
     </Reference>
+    <Reference Include="Nethereum.Hex">
+      <HintPath>Libs\Nethereum.Hex.dll</HintPath>
+    </Reference>
+    <Reference Include="Nethereum.JsonRpc.RpcClient">
+      <HintPath>Libs\Nethereum.JsonRpc.RpcClient.dll</HintPath>
+    </Reference>
+    <Reference Include="Nethereum.JsonRpc.WebSocketClient">
+      <HintPath>Libs\Nethereum.JsonRpc.WebSocketClient.dll</HintPath>
+    </Reference>
+    <Reference Include="Nethereum.RPC">
+      <HintPath>Libs\Nethereum.RPC.dll</HintPath>
+    </Reference>
+    <Reference Include="Nethereum.Unity">
+      <HintPath>Libs\Nethereum.Unity.dll</HintPath>
+    </Reference>
+    <Reference Include="Nethereum.Util">
+      <HintPath>Libs\Nethereum.Util.dll</HintPath>
+    </Reference>
     <Reference Include="uLink">
       <HintPath>Libs\uLink.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.TextMeshPro">
-      <HintPath>Libs\Unity.TextMeshPro.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
       <HintPath>Libs\UnityEngine.dll</HintPath>
@@ -49,12 +75,12 @@
     <Reference Include="UnityEngine.UI">
       <HintPath>Libs\UnityEngine.UI.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.UIElementsModule">
-      <HintPath>Libs\UnityEngine.UIElementsModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UIModule">
-      <HintPath>Libs\UnityEngine.UIModule.dll</HintPath>
-    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="readme.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
