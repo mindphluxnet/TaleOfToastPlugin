@@ -139,7 +139,7 @@ namespace TheTaleOfToastPlugin
         {
             if (amount > 0)
             {
-                AddCombatLogLine(string.Format("{0} is {3}hit for {1} {2}{4}\n", self.TargetName, amount, absorbed ? "(Absorbed)" : invincible ? "(Immune)" : "", crit ? "critically " : "", self.CurrentHealth <= 0 ? " (Fatal)" : ""));
+                AddCombatLogLine(string.Format("{0} is {3}hit for {1} {2}{4}\n", self.TargetName, amount, absorbed ? "(Absorbed)" : invincible ? "(Immune)" : "", crit ? "critically " : "", self.CurrentHealth <= 0 ? "(Fatal)" : ""));
             }
             else
             {
