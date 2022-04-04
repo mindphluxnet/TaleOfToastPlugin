@@ -151,8 +151,11 @@ namespace TheTaleOfToastPlugin
         private void AddCombatLogLine(string _line)
         {
             DateTime _date = DateTime.Now;
+            Directory.CreateDirectory("Logs");
+            string _month = _date.Month < 10 ? string.Format("{0}{1}", "0", _date.Month) : _date.Month.ToString();
+            string _day = _date.Day < 10 ? string.Format("{0}{1}", "0", _date.Day) : _date.Day.ToString();
 
-            File.AppendAllText("combat.log", string.Format("[{0}] {1}", _date.ToLongTimeString(), _line));
+            File.AppendAllText(string.Format("Logs\\Combat-{0}.log", string.Format("{0}-{1}-{2}", _date.Year, _month, _day)), string.Format("[{0}] {1}", _date.ToLongTimeString(), _line));
         }
 
         private void Update()

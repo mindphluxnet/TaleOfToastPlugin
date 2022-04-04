@@ -62,7 +62,7 @@ Then open TalesOfToastPlugin.sln using Visual Studio and press F6 to build.
 * All potions now have their effect listed on the tooltip
 * Added game wallet HPB balance to HPB wallet panel
 * You can now toggle the fullscreen sharpening effect with F4 while in-game
-* A combat log is now written to the file "combat.log" in the game directory. This can be disabled in the configuration file.
+* A combat log is now written Logs sub directory of the game directory. This can be disabled in the configuration file.
 
 ## Work in Progress
 
