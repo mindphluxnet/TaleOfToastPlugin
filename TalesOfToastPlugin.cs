@@ -101,7 +101,7 @@ namespace TheTaleOfToastPlugin
 
         private void PlayerStats_ShowXp(On.PlayerStats.orig_ShowXp orig, PlayerStats self, int amount)
         {
-            AddCombatLogLine(string.Format("You gain {0} experience", amount));
+            AddCombatLogLine(string.Format("You gain {0} experience\n", amount));
             orig.Invoke(self, amount);
         }
 
