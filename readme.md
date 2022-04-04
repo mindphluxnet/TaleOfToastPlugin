@@ -1,4 +1,40 @@
-﻿## Bug Fixes
+﻿## How to install
+
+Download the latest release from https://github.com/mindphluxnet/TaleOfToastPlugin/releases and unpack it to your Tale of Toast directory.
+
+## How to build from source (Windows)
+
+```
+git clone https://github.com/mindphluxnet/TaleOfToastPlugin
+```
+
+Create a folder called "Libs" in the cloned directory, then copy the following files into it:
+
+From ToT_Data\Managed:
+
+- Assembly-CSharp.dll
+- Facepunch.Steamworks.dll
+- InControl.dll
+- Nethereum.*.dll
+- uLink.dll
+- UnityEngine.dll
+- UnityEngine.CoreModule.dll
+- UnityEngine.UI.dll
+
+From Libs-Shipping:
+
+- MMHOOK_Assembly-CSharp.dll
+
+Download https://github.com/BepInEx/BepInEx/releases/tag/v5.4.11 unpack and copy the following files to the Libs folder:
+
+- BepInEx.dll
+- BepInEx.Harmony.dll
+- MonoMod.RuntimeDetour.dll
+- MonoMod.Utils.dll
+
+Then open TalesOfToastPlugin.sln using Visual Studio and press F6 to build.
+ 
+ ## Bug Fixes
 
 * Re-implements broken Discord Presence implementation
 * Adds missing Alt+Click to crafting recipe item preview
