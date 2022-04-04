@@ -143,7 +143,7 @@ namespace TheTaleOfToastPlugin
             }
             else
             {
-                AddCombatLogLine(string.Format("You miss {0}", self.TargetName));
+                AddCombatLogLine(string.Format("You miss {0}\n", self.TargetName));
             }
             orig.Invoke(self, amount, crit, absorbed, invincible, ownerID);
         }
