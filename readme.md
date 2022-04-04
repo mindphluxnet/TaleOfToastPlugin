@@ -24,6 +24,7 @@
 * Crafting recipe tooltips now also show the resulting item
 * All potions now have their effect listed on the tooltip
 * Added game wallet HPB balance to HPB wallet panel
+* You can now toggle the fullscreen sharpening effect with F4 while in-game
 
 ## Work in Progress
 

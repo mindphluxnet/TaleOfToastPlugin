@@ -11,10 +11,9 @@ using System.Text;
 using System.Xml.Serialization;
 using UnityEngine;
 
-
 namespace TheTaleOfToastPlugin
 {
-    [BepInPlugin("net.mindphlux.plugins.thetaleoftoastplugin", "The Tale of Toast Plugin", "1.0.8")]
+    [BepInPlugin("net.mindphlux.plugins.thetaleoftoastplugin", "The Tale of Toast Plugin", "1.0.9")]
     [BepInProcess("ToT.exe")]
     public class TheTaleOfToastPlugin : BaseUnityPlugin
     {
@@ -37,7 +36,7 @@ namespace TheTaleOfToastPlugin
         private decimal currentGameBalance;
         private bool repeatBalanceQuery = true;
 
-        void Awake()
+        private void Awake()
         {
             unknownLevelThreshold = Config.Bind("General", "UnknownLevelThreshold", 10, "Set the threshold for displaying ?? instead of a level.");
             pinnedTradeSkill = Config.Bind("DoNotChange", "PinnedTradeSkill", -1, "The currently pinned trade skill (because the game doesn't save it)");
@@ -83,20 +82,11 @@ namespace TheTaleOfToastPlugin
             On.ContainerHPB.Show += OnContainerHPBShow;
             On.HpbManager.GetBalance += OnHpbManagerGetBalance;
             On.ContainerHPB.Hide += OnContainerHPBHide;
-            On.RaceLeaderboard.TimeUpdate += OnRaceLeaderboardTimeUpdate;
 
             sessionStartTime = (long)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
-
-
         }
 
-        private void OnRaceLeaderboardTimeUpdate(On.RaceLeaderboard.orig_TimeUpdate orig, RaceLeaderboard self, string raw)
-        {
-            orig.Invoke(self, raw);
-            Debug.Log(raw);
-        }
-
-        void Update()
+        private void Update()
         {
             if (GameManager.Instance.State == GameState.Login)
             {
@@ -109,7 +99,7 @@ namespace TheTaleOfToastPlugin
             }
 
             if (GameManager.Instance.State != GameState.Game) return;
-            
+
             if (!discordInitialized)
             {
                 DiscordRpc.EventHandlers _handlers = new DiscordRpc.EventHandlers();
@@ -130,14 +120,14 @@ namespace TheTaleOfToastPlugin
                 }
             }
 
-            if(Input.GetKeyDown(KeyCode.F2))
+            if (Input.GetKeyDown(KeyCode.F2))
             {
                 SettingsManager.Instance.ToggleLockActionBars();
                 bool _locked = SettingsManager.Instance.LockActionBars;
                 Chat.Instance.InfoMessage(ChatMessageType.Info, $"Action bars are now {(_locked ? "locked." : "unlocked.")}");
             }
 
-            if(Input.GetKeyDown(KeyCode.F3))
+            if (Input.GetKeyDown(KeyCode.F3))
             {
                 if (showBagSpaceLabel.Value)
                 {
@@ -150,14 +140,17 @@ namespace TheTaleOfToastPlugin
                     bagSpaceLabel.enabled = true;
                 }
             }
-            
 
-            
+            if(Input.GetKeyUp(KeyCode.F4))
+            {
+                FindObjectOfType<BeautifyEffect.Beautify>().sharpen = FindObjectOfType<BeautifyEffect.Beautify>().sharpen == 3f ? 0f : 3f;
+            }
         }
 
         #region Quality of Life Fixes
 
         #region Fix for broken mail box back button
+
         private void OnContainerMailSetTab(On.ContainerMail.orig_SetTab orig, ContainerMail self, MailTab tab)
         {
             // the "Back" button on the Compose tab of the mailbox had a wrong (and not even existing) method bound to its
@@ -187,7 +180,6 @@ namespace TheTaleOfToastPlugin
                     _backButton.onClick.Add(MailBoxBackButtonFix);
                     mailboxFixed = true;
                 }
-
             }
         }
 
@@ -196,9 +188,10 @@ namespace TheTaleOfToastPlugin
             GuiManager.Instance.panelGame.containerMail.SetTab(MailTab.List);
         }
 
-        #endregion
+        #endregion Fix for broken mail box back button
 
         #region Bag space label
+
         private void OnUIItemCursorUnequipItem(On.UIItemCursor.orig_UnequipItem orig, int itemId, bool vanity)
         {
             orig.Invoke(itemId, vanity);
@@ -223,24 +216,24 @@ namespace TheTaleOfToastPlugin
             UpdateBagSpaceLabel();
         }
 
-        IEnumerator BagSlotsOnButtonMenu()
+        private IEnumerator BagSlotsOnButtonMenu()
         {
             yield return new WaitForSeconds(3f);
 
-            try { 
-
-            GameObject _go = FindObjectOfType<ContainerButtonMenu>().gameObject;
-            UILabel[] _label = _go.GetComponentsInChildren<UILabel>();
-
-            UILabel _labelToClone = null;
-
-            for(int i = 0; i < _label.Length; i++)
+            try
             {
-                if (_label[i].name == "Label_Diamonds")
+                GameObject _go = FindObjectOfType<ContainerButtonMenu>().gameObject;
+                UILabel[] _label = _go.GetComponentsInChildren<UILabel>();
+
+                UILabel _labelToClone = null;
+
+                for (int i = 0; i < _label.Length; i++)
                 {
-                    _labelToClone = _label[i];
+                    if (_label[i].name == "Label_Diamonds")
+                    {
+                        _labelToClone = _label[i];
+                    }
                 }
-            }
 
                 if (_labelToClone != null)
                 {
@@ -258,19 +251,15 @@ namespace TheTaleOfToastPlugin
 
                     if (_parentTransform != null)
                     {
-
                         bagSpaceLabel = Instantiate(_labelToClone, _go.transform);
                         bagSpaceLabel.transform.localPosition = new Vector2(-112f, -73f);
                         bagSpaceLabel.name = "Label_BagSpace";
                         UpdateBagSpaceLabel();
-
                     }
-
                 }
-                
-            }catch(Exception)
+            }
+            catch (Exception)
             {
-
             }
         }
 
@@ -278,7 +267,6 @@ namespace TheTaleOfToastPlugin
         {
             try
             {
-
                 int _emptySlots = PlayerInventory.Instance.Inventory.EmptySlotCount();
                 bagSpaceLabel.text = $"{_emptySlots}/25";
 
@@ -295,7 +283,7 @@ namespace TheTaleOfToastPlugin
                     bagSpaceLabel.color = Color.green;
                 }
             }
-            catch(Exception) { }
+            catch (Exception) { }
         }
 
         private void OnPlayerInventoryRemoveItem(On.PlayerInventory.orig_RemoveItem orig, PlayerInventory self, int slot, int amount)
@@ -310,13 +298,14 @@ namespace TheTaleOfToastPlugin
             UpdateBagSpaceLabel();
         }
 
-        #endregion
+        #endregion Bag space label
 
         #region Fix for missing Alt-Click to preview crafted items
+
         private void OnContainerTradeSkillsShowRecipe(On.ContainerTradeSkills.orig_ShowRecipe orig, ContainerTradeSkills self, string recipeName)
         {
             // on the original Trade Skills window it isn't possible to view the crafted item in the dressing room
-            // despite the tooltip claiming Alt+Click would preview it. 
+            // despite the tooltip claiming Alt+Click would preview it.
             // to make this work we'll add an UIButton component to the item icon and route the onClick handler to our custom function
 
             orig.Invoke(self, recipeName);
@@ -324,7 +313,7 @@ namespace TheTaleOfToastPlugin
             dressingRoomItem = ItemManager.Instance.GetItem(recipeName);
 
             if (self.recipeIcon.gameObject.GetComponent<UIButton>()) return;
-            
+
             UIButton _button = self.recipeIcon.gameObject.AddComponent<UIButton>();
             EventDelegate DessingRoomPreview = new EventDelegate(this, "ShowDressingRoom");
             _button.onClick.Add(DessingRoomPreview);
@@ -333,20 +322,20 @@ namespace TheTaleOfToastPlugin
         private void ShowDressingRoom()
         {
             if (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt))
-            { 
+            {
                 GuiManager.Instance.panelGame.containerDressingRoom.Show();
 
                 // while there is a method calld DressingRoom.ShowEquipment(item) it doesn't work
                 // so we'll use DressingRoom.ShowVanity(item) which does work. No idea why ...
 
                 PlayerCommon.Instance.DressingRoom.ShowVanity(dressingRoomItem);
-                
             }
         }
 
-        #endregion
+        #endregion Fix for missing Alt-Click to preview crafted items
 
         #region Add plugin version to the login screen
+
         private void OnPanelLoginStart(On.PanelLogin.orig_Start orig, PanelLogin self)
         {
             canLogin = false;
@@ -354,12 +343,12 @@ namespace TheTaleOfToastPlugin
             var _m = MetadataHelper.GetMetadata(this);
             self.labelBuildVersion.width = 300;
             self.labelBuildVersion.text += $" (Plugin v{_m.Version.Major}.{_m.Version.Minor}.{_m.Version.Build})";
-
         }
 
-        #endregion
+        #endregion Add plugin version to the login screen
 
         #region Show error message when trying to buy Crumbs with the Steam Overlay not enabled
+
         private void OnContainerBuyDiamondsBuyDiamonds(On.ContainerBuyDiamonds.orig_BuyDiamonds orig, ContainerBuyDiamonds self)
         {
             if (SteamManager.SteamClient.Overlay.Enabled)
@@ -372,9 +361,10 @@ namespace TheTaleOfToastPlugin
             }
         }
 
-        #endregion
+        #endregion Show error message when trying to buy Crumbs with the Steam Overlay not enabled
 
         #region Level con fix
+
         private void LevelConFix(On.ContainerTargetInfo.orig_Set_bool_bool_int_string_int_int_int_int_int_BaseStats_float_int orig, ContainerTargetInfo self, bool enabled, bool attackable, int playerLevel, string targetName, int targetLevel, int targetHealth, int targetMaxHealth, int targetMana, int targetMaxMana, BaseStats targetStats, float distance, int threat)
         {
             // set the threshold for displaying ?? as level to an user defined value instead of 6
@@ -384,9 +374,10 @@ namespace TheTaleOfToastPlugin
             orig.Invoke(self, enabled, attackable, playerLevel, targetName, targetLevel, targetHealth, targetMaxHealth, targetMana, targetMaxMana, targetStats, distance, threat);
         }
 
-        #endregion
+        #endregion Level con fix
 
-        #region Disable self-targeting 
+        #region Disable self-targeting
+
         private void OnSetTarget(On.PlayerTargeting.orig_SetTarget orig, PlayerTargeting self, ITargetable newTarget)
         {
             // fixes the problem that right-clicking the player targets them
@@ -403,9 +394,11 @@ namespace TheTaleOfToastPlugin
 
             orig.Invoke(self, newTarget);
         }
-        #endregion
+
+        #endregion Disable self-targeting
 
         #region Hook for anything that needs the game to be initialized to work
+
         private void OnDisplayLocation(On.Map.orig_DisplayLocation orig, Map self, string locationName, string subName, bool forcePvp, bool pvpAllowed, bool pardondedZone, int pvpLevelGap)
         {
             // we are hooking Map.DisplayLocation() because it's called rather late and everything is already initialized at this point
@@ -417,17 +410,15 @@ namespace TheTaleOfToastPlugin
             {
                 StartCoroutine(RestorePinnedTradeSkill());
                 ResummonPetAfterLogin();
-
             }
         }
 
-        #endregion
+        #endregion Hook for anything that needs the game to be initialized to work
 
         #region Save/restore pinned tradeskill
 
         private void PinnedTradeskillXpUpdate(On.ContainerPinnedTradeskill.orig_XpUpdate orig, ContainerPinnedTradeskill self, TradeSkill skill, int level, uint levelXp, uint nextLevelXp, uint totalXp)
         {
-
             if (skill == (TradeSkill)pinnedTradeSkill.Value)
             {
                 UILabel _label = GuiManager.Instance.panelGame.containerPinnedTradeskill.GetComponentInChildren<UILabel>();
@@ -436,16 +427,18 @@ namespace TheTaleOfToastPlugin
                 orig.Invoke(self, skill, level, levelXp, nextLevelXp, totalXp);
             }
         }
+
         private void SavePinnedTradeskill(On.ContainerTradeSkills.orig_PinSelectedTradeskill orig, ContainerTradeSkills self)
         {
             // saves the currently pinned trade skill to the plugin's config file
-            
+
             orig.Invoke(self);
             TradeSkill _tradeskill = GuiManager.Instance.panelGame.containerPinnedTradeskill.Skill;
             pinnedTradeSkill.Value = (int)_tradeskill;
             StartCoroutine(RestorePinnedTradeSkill(0.5f));
         }
-        IEnumerator RestorePinnedTradeSkill(float _delay = 5f)
+
+        private IEnumerator RestorePinnedTradeSkill(float _delay = 5f)
         {
             // restores the pinned trade skill from the plugin's config file
             // for safety reasons we defer the execution by 5 seconds to make sure all values are actually initialized
@@ -454,7 +447,6 @@ namespace TheTaleOfToastPlugin
 
             if (pinnedTradeSkill.Value != -1)
             {
-
                 TradeSkill _tradeSkill = (TradeSkill)pinnedTradeSkill.Value;
 
                 int _level = PlayerCommon.Instance.TradeSkills.Level(_tradeSkill);
@@ -467,18 +459,18 @@ namespace TheTaleOfToastPlugin
             }
         }
 
-        #endregion
+        #endregion Save/restore pinned tradeskill
 
         #region Scales minimap icons to about 65% of their original size on the highest zoom level
+
         private void FixMinimapIcons()
         {
             // fixes the way too large minimap icons on the highest zoom level
 
             GameObject[] _icons = GameObject.FindObjectsOfType<GameObject>();
-            for(int i = 0; i < _icons.Length; i++)
+            for (int i = 0; i < _icons.Length; i++)
             {
-                
-                if(_icons[i].GetComponent<CraftStation>() ||
+                if (_icons[i].GetComponent<CraftStation>() ||
                     _icons[i].GetComponent<NpcCommon>() ||
                     _icons[i].GetComponent<Mailbox>() ||
                     _icons[i].GetComponent<LootableObject>() ||
@@ -486,10 +478,10 @@ namespace TheTaleOfToastPlugin
                 )
                 {
                     if (!_icons[i].GetComponent<PhatRobit.MiniMapIcon>()) continue;
-                    if (_icons[i].GetComponent<NpcCommon>() && 
+                    if (_icons[i].GetComponent<NpcCommon>() &&
                         (!_icons[i].GetComponent<NpcVendor>().isEnabled &&
                         !_icons[i].GetComponent<NpcFlightMaster>().isEnabled)) continue;
-                 
+
                     if (PhatRobit.MiniMap.Instance.CurrentZoom == PhatRobit.MiniMap.Instance.minDistance)
                     {
                         _icons[i].GetComponent<PhatRobit.MiniMapIcon>().SetScale(3f);
@@ -498,14 +490,14 @@ namespace TheTaleOfToastPlugin
                     {
                         _icons[i].GetComponent<PhatRobit.MiniMapIcon>().SetScale(5f);
                     }
-
                 }
-            } 
+            }
         }
 
-        #endregion
+        #endregion Scales minimap icons to about 65% of their original size on the highest zoom level
 
         #region Enter/Return key to enter world on character selection screen
+
         private void PressEnterToEnterWorld()
         {
             // adds the ability to enter the world by pressing Return or Enter on the character selection screen
@@ -517,7 +509,7 @@ namespace TheTaleOfToastPlugin
             }
         }
 
-        #endregion
+        #endregion Enter/Return key to enter world on character selection screen
 
         #region Enter/return key to log in
 
@@ -526,20 +518,23 @@ namespace TheTaleOfToastPlugin
             orig.Invoke(self);
             if (UserManager.Instance.Realm != "") canLogin = true;
         }
+
         private void PressEnterToLogin()
         {
             // adds the ability to login by pressing Return or Enter on the login screen
 
             if (!canLogin) return;
 
-            if(Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+            if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
             {
                 SteamManager.Instance.TryLogin();
             }
         }
-        #endregion
+
+        #endregion Enter/return key to log in
 
         #region Disable movement logout timer
+
         private void ResetMovementLogoutTimer()
         {
             // disables the 10 second logout timer after the character has been moved
@@ -552,7 +547,7 @@ namespace TheTaleOfToastPlugin
             catch (Exception) { }
         }
 
-        #endregion
+        #endregion Disable movement logout timer
 
         #region Resummon pet after flight/logout
 
@@ -576,17 +571,17 @@ namespace TheTaleOfToastPlugin
         {
             orig.Invoke(self, enabled);
 
-            if(enabled)
+            if (enabled)
             {
                 StartCoroutine(ResummonPetAfterFlying(self));
             }
         }
 
-        IEnumerator ResummonPetAfterFlying(PlayerMovement _movement)
+        private IEnumerator ResummonPetAfterFlying(PlayerMovement _movement)
         {
             // automatically resummons the last summoned pet after completing a flight path
 
-            while(_movement.isOnFlightPath)
+            while (_movement.isOnFlightPath)
             {
                 yield return new WaitForEndOfFrame();
             }
@@ -601,23 +596,24 @@ namespace TheTaleOfToastPlugin
         {
             // automatically resummons the last summoned pet after logging in
 
-            if(lastSummonedPet.Value != -1)
+            if (lastSummonedPet.Value != -1)
             {
                 PlayerCommon.Instance.Pets.SendSummonRequest(lastSummonedPet.Value);
             }
         }
 
-        #endregion
+        #endregion Resummon pet after flight/logout
 
         #region Discord Rich Presence
+
         private void CustomUpdateDiscord(string playerLevel, string playerName = null, string playerLocation = null)
         {
-            if(playerName == null)
+            if (playerName == null)
             {
                 playerName = PlayerCommon.Instance.Init.PlayerName;
             }
 
-            if(playerLocation == null)
+            if (playerLocation == null)
             {
                 playerLocation = "Astaria";
             }
@@ -634,6 +630,7 @@ namespace TheTaleOfToastPlugin
                 DiscordRpc.UpdatePresence(ref discordRichPresence);
             }
         }
+
         private void OnDiscordControllerUpdateDiscord(On.DiscordController.orig_UpdateDiscord orig, DiscordController self, string largeImage, string realm, string smallImage, string playerName, string playerLevel)
         {
             CustomUpdateDiscord(playerLevel, playerName, lastLocation);
@@ -651,7 +648,8 @@ namespace TheTaleOfToastPlugin
             orig.Invoke(self, level, availablePoints, pointsGained);
             CustomUpdateDiscord(level.ToString(), null, lastLocation);
         }
-        #endregion
+
+        #endregion Discord Rich Presence
 
         #region Fix for missing item icons
 
@@ -670,7 +668,7 @@ namespace TheTaleOfToastPlugin
                         _base.Items[i].iconAtlas = "ItemAtlas_Parts";
                         _base.Items[i].icon = "pt_t_18";
                     }
-                    if(_base.Items[i].id == 2488)
+                    if (_base.Items[i].id == 2488)
                     {
                         _base.Items[i].icon = "meat_f_03_magic";
                     }
@@ -686,9 +684,10 @@ namespace TheTaleOfToastPlugin
             return null;
         }
 
-        #endregion
+        #endregion Fix for missing item icons
 
         #region Friend request notification via chat message
+
         private void OnSocialManagerRefreshFriendRequestList(On.SocialManager.orig_RefreshFriendRequestList orig, SocialManager self, string rawFriendList)
         {
             // notifies the player in chat if there's a friend request waiting for him
@@ -707,9 +706,10 @@ namespace TheTaleOfToastPlugin
             }
         }
 
-        #endregion
+        #endregion Friend request notification via chat message
 
         #region Adds plugin active message to chat
+
         private void OnPanelGameOnShow(On.PanelGame.orig_OnShow orig, PanelGame self)
         {
             orig.Invoke(self);
@@ -717,7 +717,6 @@ namespace TheTaleOfToastPlugin
             Chat.Instance.InfoMessage(ChatMessageType.Info, $"TaleOfToastPlugin v{_m.Version.Major}.{_m.Version.Minor}.{_m.Version.Build} enabled.");
             RemoveHPB();
         }
-
 
         private void RemoveHPB()
         {
@@ -739,10 +738,10 @@ namespace TheTaleOfToastPlugin
             return;
         }
 
-
-        #endregion
+        #endregion Adds plugin active message to chat
 
         #region Adds crafted item to crafting recipe tooltip, also adds actual effect to potions tooltip
+
         private string OnUIItemTooltipGetTooltipText(On.UIItemTooltip.orig_GetTooltipText orig, UIItemTooltip self, Item item, int stackCount, bool isVendor, bool isSelling, bool isTrading, bool isInTradeWindow, bool multiple, bool isEquipped, bool isInChatWindow, bool isInCraftWindow)
         {
             return GetCustomItemTooltipText(item, stackCount, isVendor, isSelling, isTrading, isInTradeWindow, multiple, isEquipped, isInChatWindow, isInCraftWindow);
@@ -955,7 +954,6 @@ namespace TheTaleOfToastPlugin
                     stringBuilder.Append("\n\n[00FF00]Use: Restores " + item.consumableManaAmount + " Mana[-]");
                 }
 
-
                 if (item.statusEffects.Count > 0)
                 {
                     stringBuilder.Append("\n\n[FFFF00]Status Effects:\n");
@@ -979,14 +977,13 @@ namespace TheTaleOfToastPlugin
                                 for (int x = 0; x < statusEffect.StatTypes.Count; x++)
                                 {
                                     stringBuilder.Append("\n[FFFF00]" + (statusEffect.StatValues[x] >= 0 ? "+" : "-") + statusEffect.StatValues[x] + (item.quality == ItemQuality.Uncommon || isFirewood ? " " : "% ") + statusEffect.StatTypes[x].ToString() + "[-]");
-
                                 }
                             }
-                            if(statusEffect.PassiveStatTypes.Count > 0)
+                            if (statusEffect.PassiveStatTypes.Count > 0)
                             {
-                                for(int x = 0; x < statusEffect.PassiveStatTypes.Count; x++)
+                                for (int x = 0; x < statusEffect.PassiveStatTypes.Count; x++)
                                 {
-                                    stringBuilder.Append("\n[FFFF00]" + (statusEffect.PassiveStatValues[x] > 0 ? "+" : "-") + statusEffect.PassiveStatValues[x] + (item.quality == ItemQuality.Uncommon ? " " : "% ") + ToastyTools.AddSpacesNearUpper(statusEffect.PassiveStatTypes[x].ToString())+ "[-]");
+                                    stringBuilder.Append("\n[FFFF00]" + (statusEffect.PassiveStatValues[x] > 0 ? "+" : "-") + statusEffect.PassiveStatValues[x] + (item.quality == ItemQuality.Uncommon ? " " : "% ") + ToastyTools.AddSpacesNearUpper(statusEffect.PassiveStatTypes[x].ToString()) + "[-]");
                                 }
                             }
                             stringBuilder.Append("\n\n[FFFF00]Effect Duration: " + ToastyTools.SecondsToTime((int)statusEffect.Duration));
@@ -1060,8 +1057,6 @@ namespace TheTaleOfToastPlugin
 
                 Item _item = ItemManager.Instance.GetItem(item.resource);
                 stringBuilder.Append("\n\n" + GetCustomItemTooltipText(_item, 1, false, false, false, false, false, false, false, false, true));
-
-
             }
             if (item.itemType == ItemType.Scroll)
             {
@@ -1257,8 +1252,8 @@ namespace TheTaleOfToastPlugin
                     case 2569: item.statusEffects.Add("Serene"); isFirewood = true; break; // Pine Firewood
                     case 2570: item.statusEffects.Add("Tranquil"); isFirewood = true; break; // Ash Firewood
                 }
-                
-                if(isFirewood)
+
+                if (isFirewood)
                 {
                     stringBuilder.Append("\n\n[FFFF00]Status Effects:\n");
 
@@ -1281,10 +1276,8 @@ namespace TheTaleOfToastPlugin
                     }
                     stringBuilder.Append("\n\n[FFFF00]Effect Duration: " + ToastyTools.SecondsToTime((int)statusEffect.Duration));
 
-
                     stringBuilder.Append("[-]");
                 }
-
 
                 if (item.spawnedLocation.Length > 0)
                 {
@@ -1526,9 +1519,10 @@ namespace TheTaleOfToastPlugin
             return stringBuilder.ToString();
         }
 
-        #endregion
+        #endregion Adds crafted item to crafting recipe tooltip, also adds actual effect to potions tooltip
 
         #region Reposition enemy name plates relative to their model's height
+
         private void OnEnemyInitStart(On.EnemyInit.orig_Start orig, EnemyInit self)
         {
             if (uLink.Network.isClient)
@@ -1536,19 +1530,19 @@ namespace TheTaleOfToastPlugin
                 GameObject _go = Instantiate(self.nameplatePrefab);
                 _go.transform.SetParent(self.transform);
                 Renderer _renderer = self.GetComponentInChildren<Renderer>();
-                
-                // for models that are wider than high we're moving the nameplate a bit higher 
+
+                // for models that are wider than high we're moving the nameplate a bit higher
                 // as these models are usually used by flying enemies and the nameplate would otherwise
                 // clip into the animation
 
                 _go.transform.localPosition = new Vector3(0f, _renderer.bounds.size.y + (_renderer.bounds.size.y > _renderer.bounds.size.x ? 0.1f : 0.3f), 0f);
-
             }
         }
 
-        #endregion
+        #endregion Reposition enemy name plates relative to their model's height
 
         #region Add game wallet balance to HPB wallet panel
+
         private void OnHpbManagerGetBalance(On.HpbManager.orig_GetBalance orig, HpbManager self, decimal balance)
         {
             GuiManager.Instance.panelGame.containerHPB.walletBalance.text = $"Your Wallet: {balance} - Game Wallet: {currentGameBalance}";
@@ -1597,7 +1591,6 @@ namespace TheTaleOfToastPlugin
         {
             decimal _playerBalance = GuiManager.Instance.panelGame.containerHPB.walletBalanceDecimal;
             GuiManager.Instance.panelGame.containerHPB.walletBalance.text = $"Your Wallet: {_playerBalance} - Game Wallet: {currentGameBalance}";
-
         }
 
         private void OnContainerHPBHide(On.ContainerHPB.orig_Hide orig, ContainerHPB self)
@@ -1606,10 +1599,8 @@ namespace TheTaleOfToastPlugin
             repeatBalanceQuery = false;
         }
 
-        #endregion
+        #endregion Add game wallet balance to HPB wallet panel
 
-
-        #endregion
-
+        #endregion Quality of Life Fixes
     }
 }
