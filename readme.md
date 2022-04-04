@@ -5,6 +5,7 @@
 * Fixes broken Back button on Mailbox Compose view
 * Fixes item 3675 ("Dusty Tome") having no icon because the assigned item atlas doesn't exist (neither does the assigned icon)
 * Fixes item 2488 ("Cooked Enriched Delicious Meat") having no icon because the icon assigned doesn't exist
+* Fixes items 3047 and 3048 (Mana Potion III and IV) to have matching icons instead of looking like Health Potions
 * Enemy name plates are now positioned relative to the enemy model's height to prevent them from clipping into larger enemies
 
 ## Quality of Life Features
@@ -25,6 +26,7 @@
 * All potions now have their effect listed on the tooltip
 * Added game wallet HPB balance to HPB wallet panel
 * You can now toggle the fullscreen sharpening effect with F4 while in-game
+* A combat log is now written to the file "combat.log" in the game directory. This can be disabled in the configuration file.
 
 ## Work in Progress
 

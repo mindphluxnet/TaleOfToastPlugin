@@ -21,6 +21,7 @@ namespace TheTaleOfToastPlugin
         private ConfigEntry<int> unknownLevelThreshold;
         private ConfigEntry<int> lastSummonedPet;
         private ConfigEntry<bool> showBagSpaceLabel;
+        private ConfigEntry<bool> combatLogging;
 
         private float onDisplayLocationCounter;
         private bool canLogin;
@@ -42,6 +43,7 @@ namespace TheTaleOfToastPlugin
             pinnedTradeSkill = Config.Bind("DoNotChange", "PinnedTradeSkill", -1, "The currently pinned trade skill (because the game doesn't save it)");
             lastSummonedPet = Config.Bind("DoNotChange", "LastSummonedPet", -1, "The last summoned vanity pet");
             showBagSpaceLabel = Config.Bind("General", "ShowBagSpaceLabel", true, "Displays free bag space near the button menu.");
+            combatLogging = Config.Bind("General", "EnableCombatLogging", true, "Enable combat logging to combat.log");
 
             // hooks for quality of life fixes
             // more fixes are applied in the Update() method
@@ -83,7 +85,74 @@ namespace TheTaleOfToastPlugin
             On.HpbManager.GetBalance += OnHpbManagerGetBalance;
             On.ContainerHPB.Hide += OnContainerHPBHide;
 
+            if (combatLogging.Value)
+            {
+                On.EnemyStats.ShowDamage += EnemyStats_ShowDamage;
+                On.EnemyStats.ShowHealing += EnemyStats_ShowHealing;
+                On.EnemyStats.ShowStatusEffect += EnemyStats_ShowStatusEffect;
+                On.PlayerStats.ShowDamage += PlayerStats_ShowDamage;
+                On.PlayerStats.ShowHealing += PlayerStats_ShowHealing;
+                On.PlayerStats.ShowStatusEffect += PlayerStats_ShowStatusEffect;
+                On.PlayerStats.ShowXp += PlayerStats_ShowXp;
+            }
+
             sessionStartTime = (long)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+        }
+
+        private void PlayerStats_ShowXp(On.PlayerStats.orig_ShowXp orig, PlayerStats self, int amount)
+        {
+            AddCombatLogLine(string.Format("You gain {0} experience", amount));
+            orig.Invoke(self, amount);
+        }
+
+        private void PlayerStats_ShowStatusEffect(On.PlayerStats.orig_ShowStatusEffect orig, PlayerStats self, string effectName)
+        {
+            AddCombatLogLine(string.Format("You are afflicted by {0}\n", effectName));
+            orig.Invoke(self, effectName);
+        }
+
+        private void PlayerStats_ShowHealing(On.PlayerStats.orig_ShowHealing orig, PlayerStats self, int amount, bool crit)
+        {
+            AddCombatLogLine(string.Format("You are healed for {0} {1}\n", amount, crit ? "(Critical)" : ""));
+            orig.Invoke(self, amount, crit);
+        }
+
+        private void PlayerStats_ShowDamage(On.PlayerStats.orig_ShowDamage orig, PlayerStats self, int amount, bool crit, bool absorbed, bool invincible)
+        {
+            AddCombatLogLine(string.Format("You are {2}hit for {0} {1}\n", amount, absorbed ? "(Absorbed)" : invincible ? "(Immune)" : "", crit ? "critically " : ""));
+            orig.Invoke(self, amount, crit, absorbed, invincible);
+        }
+
+        private void EnemyStats_ShowStatusEffect(On.EnemyStats.orig_ShowStatusEffect orig, EnemyStats self, string effectName)
+        {
+            AddCombatLogLine(string.Format("{0} is afflicted by {1}\n", self.TargetName, effectName));
+            orig.Invoke(self, effectName);
+        }
+
+        private void EnemyStats_ShowHealing(On.EnemyStats.orig_ShowHealing orig, EnemyStats self, int amount, bool crit)
+        {
+            AddCombatLogLine(string.Format("{0} is healed for {1} {2}\n", self.TargetName, amount, crit ? "(Critical)" : ""));
+            orig.Invoke(self, amount, crit);
+        }
+
+        private void EnemyStats_ShowDamage(On.EnemyStats.orig_ShowDamage orig, EnemyStats self, int amount, bool crit, bool absorbed, bool invincible, uLink.NetworkViewID ownerID)
+        {
+            if (amount > 0)
+            {
+                AddCombatLogLine(string.Format("{0} is {3}hit for {1} {2}{4}\n", self.TargetName, amount, absorbed ? "(Absorbed)" : invincible ? "(Immune)" : "", crit ? "critically " : "", self.CurrentHealth <= 0 ? " (Fatal)" : ""));
+            }
+            else
+            {
+                AddCombatLogLine(string.Format("You miss {0}", self.TargetName));
+            }
+            orig.Invoke(self, amount, crit, absorbed, invincible, ownerID);
+        }
+
+        private void AddCombatLogLine(string _line)
+        {
+            DateTime _date = DateTime.Now;
+
+            File.AppendAllText("combat.log", string.Format("[{0}] {1}", _date.ToLongTimeString(), _line));
         }
 
         private void Update()
@@ -141,7 +210,7 @@ namespace TheTaleOfToastPlugin
                 }
             }
 
-            if(Input.GetKeyUp(KeyCode.F4))
+            if (Input.GetKeyUp(KeyCode.F4))
             {
                 FindObjectOfType<BeautifyEffect.Beautify>().sharpen = FindObjectOfType<BeautifyEffect.Beautify>().sharpen == 3f ? 0f : 3f;
             }
@@ -672,6 +741,14 @@ namespace TheTaleOfToastPlugin
                     {
                         _base.Items[i].icon = "meat_f_03_magic";
                     }
+                    if (_base.Items[i].id == 3048)
+                    {
+                        _base.Items[i].icon = "pt_t_06";
+                    }
+                    if (_base.Items[i].id == 3047)
+                    {
+                        _base.Items[i].icon = "pt_t_06";
+                    }
                 }
 
                 return _base;
@@ -718,6 +795,10 @@ namespace TheTaleOfToastPlugin
             RemoveHPB();
         }
 
+        #endregion Adds plugin active message to chat
+
+        #region Removes any remaining mention of the (defunct) HPB crypto currency system
+
         private void RemoveHPB()
         {
             // Removes "HPB death cloud" effect on loot/kill
@@ -738,7 +819,7 @@ namespace TheTaleOfToastPlugin
             return;
         }
 
-        #endregion Adds plugin active message to chat
+        #endregion Removes any remaining mention of the (defunct) HPB crypto currency system
 
         #region Adds crafted item to crafting recipe tooltip, also adds actual effect to potions tooltip
 
