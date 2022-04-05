@@ -90,13 +90,27 @@ namespace TheTaleOfToastPlugin
                 On.EnemyStats.ShowDamage += EnemyStats_ShowDamage;
                 On.EnemyStats.ShowHealing += EnemyStats_ShowHealing;
                 On.EnemyStats.ShowStatusEffect += EnemyStats_ShowStatusEffect;
+                On.EnemyStats.Dead += EnemyStats_Dead;
                 On.PlayerStats.ShowDamage += PlayerStats_ShowDamage;
                 On.PlayerStats.ShowHealing += PlayerStats_ShowHealing;
                 On.PlayerStats.ShowStatusEffect += PlayerStats_ShowStatusEffect;
                 On.PlayerStats.ShowXp += PlayerStats_ShowXp;
+                On.PlayerStats.Dead += PlayerStats_Dead;
             }
 
             sessionStartTime = (long)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+        }
+
+        private void EnemyStats_Dead(On.EnemyStats.orig_Dead orig, EnemyStats self, bool instant)
+        {
+            AddCombatLogLine(string.Format("{0} died.\n", self.gameObject.GetComponent<EnemyCommon>().Init.enemyName));
+            orig.Invoke(self, instant);
+        }
+
+        private void PlayerStats_Dead(On.PlayerStats.orig_Dead orig, PlayerStats self, bool instant)
+        {
+            AddCombatLogLine("You died.\n");
+            orig.Invoke(self, instant);
         }
 
         private void PlayerStats_ShowXp(On.PlayerStats.orig_ShowXp orig, PlayerStats self, int amount)
