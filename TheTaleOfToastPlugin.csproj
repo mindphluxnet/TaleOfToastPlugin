@@ -6,7 +6,7 @@
     <Copyright>2021-22, Richard Kämmerer</Copyright>
     <AssemblyVersion>1.0.9.*</AssemblyVersion>
     <Description>A BepInEx plugin for the game "The Tale of Toast" adding several quality of life improvements and bug fixes.</Description>
-    <Version>1.0.9.0</Version>
+    <Version>1.0.1.1</Version>
     <Deterministic>false</Deterministic>
   </PropertyGroup>
 

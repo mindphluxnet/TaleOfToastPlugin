@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace TheTaleOfToastPlugin
 {
-    [BepInPlugin("net.mindphlux.plugins.thetaleoftoastplugin", "The Tale of Toast Plugin", "1.1.0")]
+    [BepInPlugin("net.mindphlux.plugins.thetaleoftoastplugin", "The Tale of Toast Plugin", "1.1.1")]
     [BepInProcess("ToT.exe")]
     public class TheTaleOfToastPlugin : BaseUnityPlugin
     {
