@@ -401,8 +401,8 @@ namespace TheTaleOfToastPlugin
             if (self.recipeIcon.gameObject.GetComponent<UIButton>()) return;
 
             UIButton _button = self.recipeIcon.gameObject.AddComponent<UIButton>();
-            EventDelegate DessingRoomPreview = new EventDelegate(this, "ShowDressingRoom");
-            _button.onClick.Add(DessingRoomPreview);
+            EventDelegate DressingRoomPreview = new EventDelegate(this, "ShowDressingRoom");
+            _button.onClick.Add(DressingRoomPreview);
         }
 
         private void ShowDressingRoom()
