@@ -101,6 +101,8 @@ namespace TheTaleOfToastPlugin
             sessionStartTime = (long)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
         }
 
+        #region Combat logging
+
         private void EnemyStats_Dead(On.EnemyStats.orig_Dead orig, EnemyStats self, bool instant)
         {
             AddCombatLogLine(string.Format("{0} died.\n", self.gameObject.GetComponent<EnemyCommon>().Init.enemyName));
@@ -172,6 +174,8 @@ namespace TheTaleOfToastPlugin
             File.AppendAllText(string.Format("Logs\\Combat-{0}.log", string.Format("{0}-{1}-{2}", _date.Year, _month, _day)), string.Format("[{0}] {1}", _date.ToLongTimeString(), _line));
         }
 
+        #endregion
+
         private void Update()
         {
             if (GameManager.Instance.State == GameState.Login)
@@ -229,7 +233,9 @@ namespace TheTaleOfToastPlugin
 
             if (Input.GetKeyUp(KeyCode.F4))
             {
-                FindObjectOfType<BeautifyEffect.Beautify>().sharpen = FindObjectOfType<BeautifyEffect.Beautify>().sharpen == 3f ? 0f : 3f;
+                BeautifyEffect.Beautify _beautify = FindObjectOfType<BeautifyEffect.Beautify>();
+
+                _beautify.sharpen = _beautify.sharpen == 3f ? 0f : 3f;
             }
         }
 
