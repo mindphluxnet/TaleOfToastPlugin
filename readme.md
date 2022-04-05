@@ -60,7 +60,6 @@ Then open TalesOfToastPlugin.sln using Visual Studio and press F6 to build.
 * Removes the "HPB death cloud" effect on loot/kill
 * Crafting recipe tooltips now also show the resulting item
 * All potions now have their effect listed on the tooltip
-* Added game wallet HPB balance to HPB wallet panel
 * You can now toggle the fullscreen sharpening effect with F4 while in-game
 * A combat log is now written to the Logs sub directory of the game directory. This can be disabled in the configuration file.
 
