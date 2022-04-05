@@ -34,8 +34,6 @@ namespace TheTaleOfToastPlugin
         private string lastLocation;
         private long sessionStartTime = 0;
         private bool isFirewood = false;
-        private decimal currentGameBalance;
-        private bool repeatBalanceQuery = true;
 
         private void Awake()
         {
@@ -81,9 +79,6 @@ namespace TheTaleOfToastPlugin
             On.PlayerStats.HPBReward += OnPlayerStatsHPBReward;
             On.UIItemTooltip.GetTooltipText += OnUIItemTooltipGetTooltipText;
             On.EnemyInit.Start += OnEnemyInitStart;
-            On.ContainerHPB.Show += OnContainerHPBShow;
-            On.HpbManager.GetBalance += OnHpbManagerGetBalance;
-            On.ContainerHPB.Hide += OnContainerHPBHide;
 
             if (combatLogging.Value)
             {
