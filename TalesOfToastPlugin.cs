@@ -87,15 +87,7 @@ namespace TheTaleOfToastPlugin
 
             if (combatLogging.Value)
             {
-                On.EnemyStats.ShowDamage += EnemyStats_ShowDamage;
-                On.EnemyStats.ShowHealing += EnemyStats_ShowHealing;
-                On.EnemyStats.ShowStatusEffect += EnemyStats_ShowStatusEffect;
-                On.EnemyStats.Dead += EnemyStats_Dead;
-                On.PlayerStats.ShowDamage += PlayerStats_ShowDamage;
-                On.PlayerStats.ShowHealing += PlayerStats_ShowHealing;
-                On.PlayerStats.ShowStatusEffect += PlayerStats_ShowStatusEffect;
-                On.PlayerStats.ShowXp += PlayerStats_ShowXp;
-                On.PlayerStats.Dead += PlayerStats_Dead;
+                On.ChatManager.MessageFromServer += ChatManager_MessageFromServer;
             }
 
             sessionStartTime = (long)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
@@ -165,66 +157,13 @@ namespace TheTaleOfToastPlugin
         }
 
         #region Combat logging
-
-        private void EnemyStats_Dead(On.EnemyStats.orig_Dead orig, EnemyStats self, bool instant)
+        private void ChatManager_MessageFromServer(On.ChatManager.orig_MessageFromServer orig, ChatManager self, int chatMessageType, string message, int chatTab)
         {
-            AddCombatLogLine(string.Format("{0} died.\n", self.gameObject.GetComponent<EnemyCommon>().Init.enemyName));
-            orig.Invoke(self, instant);
-        }
-
-        private void PlayerStats_Dead(On.PlayerStats.orig_Dead orig, PlayerStats self, bool instant)
-        {
-            AddCombatLogLine("You died.\n");
-            orig.Invoke(self, instant);
-        }
-
-        private void PlayerStats_ShowXp(On.PlayerStats.orig_ShowXp orig, PlayerStats self, int amount)
-        {
-            AddCombatLogLine(string.Format("You gain {0} experience\n", amount));
-            orig.Invoke(self, amount);
-        }
-
-        private void PlayerStats_ShowStatusEffect(On.PlayerStats.orig_ShowStatusEffect orig, PlayerStats self, string effectName)
-        {
-            AddCombatLogLine(string.Format("You are afflicted by {0}\n", effectName));
-            orig.Invoke(self, effectName);
-        }
-
-        private void PlayerStats_ShowHealing(On.PlayerStats.orig_ShowHealing orig, PlayerStats self, int amount, bool crit)
-        {
-            AddCombatLogLine(string.Format("You are healed for {0} {1}\n", amount, crit ? "(Critical)" : ""));
-            orig.Invoke(self, amount, crit);
-        }
-
-        private void PlayerStats_ShowDamage(On.PlayerStats.orig_ShowDamage orig, PlayerStats self, int amount, bool crit, bool absorbed, bool invincible)
-        {
-            AddCombatLogLine(string.Format("You are {2}hit for {0} {1}\n", amount, absorbed ? "(Absorbed)" : invincible ? "(Immune)" : "", crit ? "critically " : ""));
-            orig.Invoke(self, amount, crit, absorbed, invincible);
-        }
-
-        private void EnemyStats_ShowStatusEffect(On.EnemyStats.orig_ShowStatusEffect orig, EnemyStats self, string effectName)
-        {
-            AddCombatLogLine(string.Format("{0} is afflicted by {1}\n", self.TargetName, effectName));
-            orig.Invoke(self, effectName);
-        }
-
-        private void EnemyStats_ShowHealing(On.EnemyStats.orig_ShowHealing orig, EnemyStats self, int amount, bool crit)
-        {
-            AddCombatLogLine(string.Format("{0} is healed for {1} {2}\n", self.TargetName, amount, crit ? "(Critical)" : ""));
-            orig.Invoke(self, amount, crit);
-        }
-
-        private void EnemyStats_ShowDamage(On.EnemyStats.orig_ShowDamage orig, EnemyStats self, int amount, bool crit, bool absorbed, bool invincible, uLink.NetworkViewID ownerID)
-        {
-            if (amount > 0)
+            if (chatTab == 2 || chatTab == 3)
             {
-                AddCombatLogLine(string.Format("{0} is {3}hit for {1} {2}{4}\n", self.TargetName, amount, absorbed ? "(Absorbed)" : invincible ? "(Immune)" : "", crit ? "critically " : "", self.CurrentHealth <= 0 ? "(Fatal)" : ""));
+                AddCombatLogLine(string.Format("{0}\n", message));
             }
-            else
-            {
-                AddCombatLogLine(string.Format("You miss {0}\n", self.TargetName));
-            }
-            orig.Invoke(self, amount, crit, absorbed, invincible, ownerID);
+            orig.Invoke(self, chatMessageType, message, chatTab);
         }
 
         private void AddCombatLogLine(string _line)
