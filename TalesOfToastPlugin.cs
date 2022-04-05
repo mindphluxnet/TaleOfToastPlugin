@@ -234,8 +234,8 @@ namespace TheTaleOfToastPlugin
             if (Input.GetKeyUp(KeyCode.F4))
             {
                 BeautifyEffect.Beautify _beautify = FindObjectOfType<BeautifyEffect.Beautify>();
-
                 _beautify.sharpen = _beautify.sharpen == 3f ? 0f : 3f;
+                Chat.Instance.InfoMessage(ChatMessageType.Info, $"Sharpen effect is now {(_beautify.sharpen == 3 ? "enabled." : "disabled.")}");
             }
         }
 
