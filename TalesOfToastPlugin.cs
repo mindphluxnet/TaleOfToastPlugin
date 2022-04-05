@@ -101,6 +101,69 @@ namespace TheTaleOfToastPlugin
             sessionStartTime = (long)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
         }
 
+        private void Update()
+        {
+            if (GameManager.Instance.State == GameState.Login)
+            {
+                PressEnterToLogin();
+            }
+
+            if (GameManager.Instance.State == GameState.CharacterSelection)
+            {
+                PressEnterToEnterWorld();
+            }
+
+            if (GameManager.Instance.State != GameState.Game) return;
+
+            if (!discordInitialized)
+            {
+                DiscordRpc.EventHandlers _handlers = new DiscordRpc.EventHandlers();
+                DiscordRpc.Initialize("851053235758432256", ref _handlers, true, "640150");
+                DiscordRpc.UpdatePresence(ref discordRichPresence);
+                discordInitialized = true;
+            }
+
+            ResetMovementLogoutTimer();
+            FixMinimapIcons();
+
+            if (showBagSpaceLabel.Value)
+            {
+                if (!bagSpaceLabelAdded)
+                {
+                    bagSpaceLabelAdded = true;
+                    StartCoroutine(BagSlotsOnButtonMenu());
+                }
+            }
+
+            if (Input.GetKeyDown(KeyCode.F2))
+            {
+                SettingsManager.Instance.ToggleLockActionBars();
+                bool _locked = SettingsManager.Instance.LockActionBars;
+                Chat.Instance.InfoMessage(ChatMessageType.Info, $"Action bars are now {(_locked ? "locked." : "unlocked.")}");
+            }
+
+            if (Input.GetKeyDown(KeyCode.F3))
+            {
+                if (showBagSpaceLabel.Value)
+                {
+                    showBagSpaceLabel.Value = false;
+                    bagSpaceLabel.enabled = false;
+                }
+                else
+                {
+                    showBagSpaceLabel.Value = true;
+                    bagSpaceLabel.enabled = true;
+                }
+            }
+
+            if (Input.GetKeyUp(KeyCode.F4))
+            {
+                BeautifyEffect.Beautify _beautify = FindObjectOfType<BeautifyEffect.Beautify>();
+                _beautify.sharpen = _beautify.sharpen == 3f ? 0f : 3f;
+                Chat.Instance.InfoMessage(ChatMessageType.Info, $"Sharpen effect is now {(_beautify.sharpen == 3 ? "enabled." : "disabled.")}");
+            }
+        }
+
         #region Combat logging
 
         private void EnemyStats_Dead(On.EnemyStats.orig_Dead orig, EnemyStats self, bool instant)
@@ -176,70 +239,7 @@ namespace TheTaleOfToastPlugin
 
         #endregion Combat logging
 
-        private void Update()
-        {
-            if (GameManager.Instance.State == GameState.Login)
-            {
-                PressEnterToLogin();
-            }
-
-            if (GameManager.Instance.State == GameState.CharacterSelection)
-            {
-                PressEnterToEnterWorld();
-            }
-
-            if (GameManager.Instance.State != GameState.Game) return;
-
-            if (!discordInitialized)
-            {
-                DiscordRpc.EventHandlers _handlers = new DiscordRpc.EventHandlers();
-                DiscordRpc.Initialize("851053235758432256", ref _handlers, true, "640150");
-                DiscordRpc.UpdatePresence(ref discordRichPresence);
-                discordInitialized = true;
-            }
-
-            ResetMovementLogoutTimer();
-            FixMinimapIcons();
-
-            if (showBagSpaceLabel.Value)
-            {
-                if (!bagSpaceLabelAdded)
-                {
-                    bagSpaceLabelAdded = true;
-                    StartCoroutine(BagSlotsOnButtonMenu());
-                }
-            }
-
-            if (Input.GetKeyDown(KeyCode.F2))
-            {
-                SettingsManager.Instance.ToggleLockActionBars();
-                bool _locked = SettingsManager.Instance.LockActionBars;
-                Chat.Instance.InfoMessage(ChatMessageType.Info, $"Action bars are now {(_locked ? "locked." : "unlocked.")}");
-            }
-
-            if (Input.GetKeyDown(KeyCode.F3))
-            {
-                if (showBagSpaceLabel.Value)
-                {
-                    showBagSpaceLabel.Value = false;
-                    bagSpaceLabel.enabled = false;
-                }
-                else
-                {
-                    showBagSpaceLabel.Value = true;
-                    bagSpaceLabel.enabled = true;
-                }
-            }
-
-            if (Input.GetKeyUp(KeyCode.F4))
-            {
-                BeautifyEffect.Beautify _beautify = FindObjectOfType<BeautifyEffect.Beautify>();
-                _beautify.sharpen = _beautify.sharpen == 3f ? 0f : 3f;
-                Chat.Instance.InfoMessage(ChatMessageType.Info, $"Sharpen effect is now {(_beautify.sharpen == 3 ? "enabled." : "disabled.")}");
-            }
-        }
-
-        #region Quality of Life Fixes
+        #region Bug fixes
 
         #region Fix for broken mail box back button
 
@@ -281,6 +281,120 @@ namespace TheTaleOfToastPlugin
         }
 
         #endregion Fix for broken mail box back button
+
+        #region Fix for missing item icons
+
+        private ItemDatabase OnItemDatabaseLoadTextAsset(On.ItemDatabase.orig_Load_TextAsset orig, TextAsset xmlFile)
+        {
+            // fixes the missing icon for item "Dusty Tome" (id 3675) and "Cooked Enriched Delicious Meat" (2488)
+
+            try
+            {
+                ItemDatabase _base = (ItemDatabase)new XmlSerializer(typeof(ItemDatabase)).Deserialize(new StringReader(xmlFile.text));
+
+                for (int i = 0; i < _base.Items.Count; i++)
+                {
+                    if (_base.Items[i].id == 3675)
+                    {
+                        _base.Items[i].iconAtlas = "ItemAtlas_Parts";
+                        _base.Items[i].icon = "pt_t_18";
+                    }
+                    if (_base.Items[i].id == 2488)
+                    {
+                        _base.Items[i].icon = "meat_f_03_magic";
+                    }
+                    if (_base.Items[i].id == 3048)
+                    {
+                        _base.Items[i].icon = "pt_t_06";
+                    }
+                    if (_base.Items[i].id == 3047)
+                    {
+                        _base.Items[i].icon = "pt_t_06";
+                    }
+                }
+
+                return _base;
+            }
+            catch (Exception arg)
+            {
+                Debug.LogError("[ItemDatabase] Failed to load Item DB: " + arg);
+                ToastyTools.Quit();
+            }
+            return null;
+        }
+
+        #endregion Fix for missing item icons
+
+        #region Discord Rich Presence
+
+        private void CustomUpdateDiscord(string playerLevel, string playerName = null, string playerLocation = null)
+        {
+            if (playerName == null)
+            {
+                playerName = PlayerCommon.Instance.Init.PlayerName;
+            }
+
+            if (playerLocation == null)
+            {
+                playerLocation = "Astaria";
+            }
+
+            if (discordInitialized)
+            {
+                discordRichPresence.largeImageKey = "toastlogo";
+                discordRichPresence.largeImageText = "The Tale of Toast";
+                discordRichPresence.smallImageKey = "toastlogo";
+                discordRichPresence.smallImageText = "The Tale of Toast";
+                discordRichPresence.state = $"Adventuring in {playerLocation}";
+                discordRichPresence.details = $"{playerName}, level {playerLevel}";
+                discordRichPresence.startTimestamp = sessionStartTime;
+                DiscordRpc.UpdatePresence(ref discordRichPresence);
+            }
+        }
+
+        private void OnDiscordControllerUpdateDiscord(On.DiscordController.orig_UpdateDiscord orig, DiscordController self, string largeImage, string realm, string smallImage, string playerName, string playerLevel)
+        {
+            CustomUpdateDiscord(playerLevel, playerName, lastLocation);
+        }
+
+        private void OnMapDisplayLocation(On.Map.orig_DisplayLocation orig, Map self, string locationName, string subName, bool forcePvp, bool pvpAllowed, bool pardondedZone, int pvpLevelGap)
+        {
+            orig.Invoke(self, locationName, subName, forcePvp, pvpAllowed, pardondedZone, pvpLevelGap);
+            CustomUpdateDiscord(PlayerCommon.Instance.Stats.CurrentLevel.ToString(), null, locationName);
+            lastLocation = locationName;
+        }
+
+        private void OnPlayerStatsLeveledUp(On.PlayerStats.orig_LeveledUp orig, PlayerStats self, int level, int availablePoints, int pointsGained)
+        {
+            orig.Invoke(self, level, availablePoints, pointsGained);
+            CustomUpdateDiscord(level.ToString(), null, lastLocation);
+        }
+
+        #endregion Discord Rich Presence
+
+        #region Reposition enemy name plates relative to their model's height
+
+        private void OnEnemyInitStart(On.EnemyInit.orig_Start orig, EnemyInit self)
+        {
+            if (uLink.Network.isClient)
+            {
+                GameObject _go = Instantiate(self.nameplatePrefab);
+                _go.transform.SetParent(self.transform);
+                Renderer _renderer = self.GetComponentInChildren<Renderer>();
+
+                // for models that are wider than high we're moving the nameplate a bit higher
+                // as these models are usually used by flying enemies and the nameplate would otherwise
+                // clip into the animation
+
+                _go.transform.localPosition = new Vector3(0f, _renderer.bounds.size.y + (_renderer.bounds.size.y > _renderer.bounds.size.x ? 0.1f : 0.3f), 0f);
+            }
+        }
+
+        #endregion Reposition enemy name plates relative to their model's height
+
+        #endregion Bug fixes
+
+        #region Quality of Life Fixes
 
         #region Bag space label
 
@@ -695,96 +809,6 @@ namespace TheTaleOfToastPlugin
         }
 
         #endregion Resummon pet after flight/logout
-
-        #region Discord Rich Presence
-
-        private void CustomUpdateDiscord(string playerLevel, string playerName = null, string playerLocation = null)
-        {
-            if (playerName == null)
-            {
-                playerName = PlayerCommon.Instance.Init.PlayerName;
-            }
-
-            if (playerLocation == null)
-            {
-                playerLocation = "Astaria";
-            }
-
-            if (discordInitialized)
-            {
-                discordRichPresence.largeImageKey = "toastlogo";
-                discordRichPresence.largeImageText = "The Tale of Toast";
-                discordRichPresence.smallImageKey = "toastlogo";
-                discordRichPresence.smallImageText = "The Tale of Toast";
-                discordRichPresence.state = $"Adventuring in {playerLocation}";
-                discordRichPresence.details = $"{playerName}, level {playerLevel}";
-                discordRichPresence.startTimestamp = sessionStartTime;
-                DiscordRpc.UpdatePresence(ref discordRichPresence);
-            }
-        }
-
-        private void OnDiscordControllerUpdateDiscord(On.DiscordController.orig_UpdateDiscord orig, DiscordController self, string largeImage, string realm, string smallImage, string playerName, string playerLevel)
-        {
-            CustomUpdateDiscord(playerLevel, playerName, lastLocation);
-        }
-
-        private void OnMapDisplayLocation(On.Map.orig_DisplayLocation orig, Map self, string locationName, string subName, bool forcePvp, bool pvpAllowed, bool pardondedZone, int pvpLevelGap)
-        {
-            orig.Invoke(self, locationName, subName, forcePvp, pvpAllowed, pardondedZone, pvpLevelGap);
-            CustomUpdateDiscord(PlayerCommon.Instance.Stats.CurrentLevel.ToString(), null, locationName);
-            lastLocation = locationName;
-        }
-
-        private void OnPlayerStatsLeveledUp(On.PlayerStats.orig_LeveledUp orig, PlayerStats self, int level, int availablePoints, int pointsGained)
-        {
-            orig.Invoke(self, level, availablePoints, pointsGained);
-            CustomUpdateDiscord(level.ToString(), null, lastLocation);
-        }
-
-        #endregion Discord Rich Presence
-
-        #region Fix for missing item icons
-
-        private ItemDatabase OnItemDatabaseLoadTextAsset(On.ItemDatabase.orig_Load_TextAsset orig, TextAsset xmlFile)
-        {
-            // fixes the missing icon for item "Dusty Tome" (id 3675) and "Cooked Enriched Delicious Meat" (2488)
-
-            try
-            {
-                ItemDatabase _base = (ItemDatabase)new XmlSerializer(typeof(ItemDatabase)).Deserialize(new StringReader(xmlFile.text));
-
-                for (int i = 0; i < _base.Items.Count; i++)
-                {
-                    if (_base.Items[i].id == 3675)
-                    {
-                        _base.Items[i].iconAtlas = "ItemAtlas_Parts";
-                        _base.Items[i].icon = "pt_t_18";
-                    }
-                    if (_base.Items[i].id == 2488)
-                    {
-                        _base.Items[i].icon = "meat_f_03_magic";
-                    }
-                    if (_base.Items[i].id == 3048)
-                    {
-                        _base.Items[i].icon = "pt_t_06";
-                    }
-                    if (_base.Items[i].id == 3047)
-                    {
-                        _base.Items[i].icon = "pt_t_06";
-                    }
-                }
-
-                return _base;
-            }
-            catch (Exception arg)
-            {
-                Debug.LogError("[ItemDatabase] Failed to load Item DB: " + arg);
-                ToastyTools.Quit();
-            }
-            return null;
-        }
-
-        #endregion Fix for missing item icons
 
         #region Friend request notification via chat message
 
@@ -1624,26 +1648,6 @@ namespace TheTaleOfToastPlugin
         }
 
         #endregion Adds crafted item to crafting recipe tooltip, also adds actual effect to potions tooltip
-
-        #region Reposition enemy name plates relative to their model's height
-
-        private void OnEnemyInitStart(On.EnemyInit.orig_Start orig, EnemyInit self)
-        {
-            if (uLink.Network.isClient)
-            {
-                GameObject _go = Instantiate(self.nameplatePrefab);
-                _go.transform.SetParent(self.transform);
-                Renderer _renderer = self.GetComponentInChildren<Renderer>();
-
-                // for models that are wider than high we're moving the nameplate a bit higher
-                // as these models are usually used by flying enemies and the nameplate would otherwise
-                // clip into the animation
-
-                _go.transform.localPosition = new Vector3(0f, _renderer.bounds.size.y + (_renderer.bounds.size.y > _renderer.bounds.size.x ? 0.1f : 0.3f), 0f);
-            }
-        }
-
-        #endregion Reposition enemy name plates relative to their model's height
 
         #region Add game wallet balance to HPB wallet panel
 
