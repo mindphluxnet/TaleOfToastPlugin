@@ -1588,66 +1588,6 @@ namespace TheTaleOfToastPlugin
 
         #endregion Adds crafted item to crafting recipe tooltip, also adds actual effect to potions tooltip
 
-        #region Add game wallet balance to HPB wallet panel
-
-        private void OnHpbManagerGetBalance(On.HpbManager.orig_GetBalance orig, HpbManager self, decimal balance)
-        {
-            GuiManager.Instance.panelGame.containerHPB.walletBalance.text = $"Your Wallet: {balance} - Game Wallet: {currentGameBalance}";
-            GuiManager.Instance.panelGame.containerHPB.walletBalanceDecimal = balance;
-        }
-
-        private void OnContainerHPBShow(On.ContainerHPB.orig_Show orig, ContainerHPB self)
-        {
-            self.walletAddress.text = UserManager.Instance.PublicKey;
-            self.inputWalletAddress.value = UserManager.Instance.PublicKey;
-            self.inputWalletAddress.savedAs = UserManager.Instance.PublicKey;
-            Texture2D mainTexture = self.generateQR(UserManager.Instance.PublicKey);
-            self.qrWalletTexture.mainTexture = mainTexture;
-            HpbManager.Instance.repeatBalanceQuery = true;
-            repeatBalanceQuery = true;
-            self.transferDestination.SetDirty();
-            self.transferAmount.SetDirty();
-            HpbManager.Instance.AskForBalance(false);
-            StartCoroutine(CheckGameWalletBalance());
-            NGUITools.SetActive(base.gameObject, true);
-        }
-
-        private IEnumerator CheckGameWalletBalance()
-        {
-            string _node = "https://node.myhpbwallet.com";
-            string address = "0x7275d6f7103f897dcf5c8a0a292141fb648458f5";
-
-            EthGetBalanceUnityRequest balanceRequest = new EthGetBalanceUnityRequest(_node, null);
-            yield return balanceRequest.SendRequest(address, BlockParameter.CreateLatest());
-            currentGameBalance = UnitConversion.Convert.FromWei(balanceRequest.Result.Value, UnitConversion.EthUnit.Ether);
-
-            float time = 1f;
-            while (repeatBalanceQuery)
-            {
-                yield return new WaitForSeconds(time);
-                yield return balanceRequest.SendRequest(address, BlockParameter.CreateLatest());
-                currentGameBalance = UnitConversion.Convert.FromWei(balanceRequest.Result.Value, UnitConversion.EthUnit.Ether);
-
-                UpdateGameWalletBalance();
-            }
-
-            yield break;
-        }
-
-        private void UpdateGameWalletBalance()
-        {
-            decimal _playerBalance = GuiManager.Instance.panelGame.containerHPB.walletBalanceDecimal;
-            GuiManager.Instance.panelGame.containerHPB.walletBalance.text = $"Your Wallet: {_playerBalance} - Game Wallet: {currentGameBalance}";
-        }
-
-        private void OnContainerHPBHide(On.ContainerHPB.orig_Hide orig, ContainerHPB self)
-        {
-            orig.Invoke(self);
-            repeatBalanceQuery = false;
-        }
-
-        #endregion Add game wallet balance to HPB wallet panel
-
         #endregion Quality of Life Fixes
     }
 }
