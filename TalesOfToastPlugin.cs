@@ -43,7 +43,7 @@ namespace TheTaleOfToastPlugin
             pinnedTradeSkill = Config.Bind("DoNotChange", "PinnedTradeSkill", -1, "The currently pinned trade skill (because the game doesn't save it)");
             lastSummonedPet = Config.Bind("DoNotChange", "LastSummonedPet", -1, "The last summoned vanity pet");
             showBagSpaceLabel = Config.Bind("General", "ShowBagSpaceLabel", true, "Displays free bag space near the button menu.");
-            combatLogging = Config.Bind("General", "EnableCombatLogging", true, "Enable combat logging to combat.log");
+            combatLogging = Config.Bind("General", "EnableCombatLogging", true, "Enable combat logging.");
 
             // hooks for quality of life fixes
             // more fixes are applied in the Update() method
