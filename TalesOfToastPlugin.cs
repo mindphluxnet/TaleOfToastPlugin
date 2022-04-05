@@ -1,8 +1,5 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
-using Nethereum.JsonRpc.UnityClient;
-using Nethereum.RPC.Eth.DTOs;
-using Nethereum.Util;
 using System;
 using System.Collections;
 using System.Collections.Generic;
