@@ -174,7 +174,7 @@ namespace TheTaleOfToastPlugin
             File.AppendAllText(string.Format("Logs\\Combat-{0}.log", string.Format("{0}-{1}-{2}", _date.Year, _month, _day)), string.Format("[{0}] {1}", _date.ToLongTimeString(), _line));
         }
 
-        #endregion
+        #endregion Combat logging
 
         private void Update()
         {
