@@ -37,7 +37,7 @@
       <HintPath>Libs\InControl.dll</HintPath>
     </Reference>
     <Reference Include="MMHOOK_Assembly-CSharp">
-      <HintPath>Libs\MMHOOK_Assembly-CSharp.dll</HintPath>
+      <HintPath>Libs-Shipping\MMHOOK_Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="MonoMod.RuntimeDetour">
       <HintPath>Libs\MonoMod.RuntimeDetour.dll</HintPath>
@@ -71,6 +71,9 @@
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>Libs\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>Libs\UnityEngine.PhysicsModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UIModule">
       <HintPath>Libs\UnityEngine.UIModule.dll</HintPath>
